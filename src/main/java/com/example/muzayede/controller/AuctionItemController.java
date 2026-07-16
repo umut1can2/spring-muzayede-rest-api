@@ -1,9 +1,11 @@
 package com.example.muzayede.controller;
 
+import com.example.muzayede.config.Security;
 import com.example.muzayede.dto.AuctionItemCreateDto;
 import com.example.muzayede.dto.AuctionListItemDto;
 import com.example.muzayede.entity.AuctionItem;
 import com.example.muzayede.service.AuctionItemService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +24,8 @@ public class AuctionItemController {
     @PostMapping("/create")
     public AuctionItem CreateAuctionItem(@RequestBody AuctionItemCreateDto dto)
     {
-        return auctionItemService.createAuctionItem(dto);
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        return auctionItemService.createAuctionItem(dto, userName);
     }
 
     @PostMapping("/delete/{id}")
@@ -35,6 +38,13 @@ public class AuctionItemController {
     public List<AuctionListItemDto> list()
     {
         return auctionItemService.list();
+    }
+
+    @PostMapping("/{id}/approve")
+    public void ApproveAuctionItem(@PathVariable Long id)
+    {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        auctionItemService.approveAuctionItem(id, username);
     }
 
 }

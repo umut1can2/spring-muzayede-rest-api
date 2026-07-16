@@ -30,16 +30,17 @@ public class AuctionItemService {
         this.userRepository = userRepository;
     }
 
-    public AuctionItem createAuctionItem(AuctionItemCreateDto item)
+    public AuctionItem createAuctionItem(AuctionItemCreateDto item, String userName)
     {
-        User seller = userRepository.findById(item.getSellerId())
+        User seller = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanici buluanamadi."));
 
         AuctionItem newItem = new AuctionItem();
 
         BeanUtils.copyProperties(item, newItem);
         newItem.setCurrentPrice(item.getStartPrice());
-        newItem.setActive(true);
+        newItem.setActive(false);
+        newItem.setApproved(false);
 
         // bitis tarihinin hesaplanmasi
         newItem.setEndTime(LocalDateTime.now().plusDays(item.getDurationInDays()));
@@ -66,9 +67,30 @@ public class AuctionItemService {
 
         for(AuctionItem item : aItem)
         {
-            items.add(new AuctionListItemDto(item.getTitle(),item.getDescription(),item.getCurrentPrice(),item.getEndTime(), item.getSeller().getUsername()));
+            if(item.isActive())
+            {
+                items.add(new AuctionListItemDto(item.getTitle(),item.getDescription(),item.getCurrentPrice(),item.getEndTime(), item.getSeller().getUsername()));
+            }
         }
         return items;
     }
 
+    public void approveAuctionItem(Long itemId, String adminUserName)
+    {
+        AuctionItem item = auctionItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Aranan urun bulunamadi!"));
+
+        if(item.isApproved())
+        {
+            throw new RuntimeException("Ilan daha onceden onaylanmis!");
+        }
+
+        User approvedAdmin = userRepository.findByUsername(adminUserName)
+                        .orElseThrow(() -> new ResourceNotFoundException("Onaylayan admin bulunamadi!"));
+
+        item.setApproved(true);
+        item.setActive(true);
+
+        auctionItemRepository.save(item);
+    }
 }

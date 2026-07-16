@@ -1,6 +1,7 @@
 package com.example.muzayede.service;
 
 import com.example.muzayede.dto.BidCreateDto;
+import com.example.muzayede.dto.BidHistoryDto;
 import com.example.muzayede.entity.AuctionItem;
 import com.example.muzayede.entity.Bid;
 import com.example.muzayede.entity.User;
@@ -15,27 +16,33 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class BidService {
     private final BidRepository bidRepository;
     private final UserRepository userRepository;
     private final AuctionItemRepository auctionItemRepository;
+    private final AuctionItemService auctionItemService;
+    private final AuctionSchedularService auctionSchedularService;
 
     public BidService(
             BidRepository bidRepository,
             UserRepository userRepository,
-            AuctionItemRepository auctionItemRepository
-    )
+            AuctionItemRepository auctionItemRepository,
+            AuctionItemService auctionItemService, AuctionSchedularService auctionSchedularService)
     {
         this.bidRepository = bidRepository;
         this.auctionItemRepository = auctionItemRepository;
         this.userRepository = userRepository;
+        this.auctionItemService = auctionItemService;
+        this.auctionSchedularService = auctionSchedularService;
     }
 
-    public Bid CreateBid(BidCreateDto dto)
+    public Bid CreateBid(BidCreateDto dto, String userName)
     {
-        User bidder = userRepository.findById(dto.getBidderId())
+        User bidder = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanici bulunamadi."));
 
         AuctionItem item = auctionItemRepository.findById(dto.getAuctionItemId())
@@ -118,5 +125,25 @@ public class BidService {
 
         return bidRepository.save(newBid);
 
+    }
+
+    public List<BidHistoryDto> getBidHistory(Long id)
+    {
+        AuctionItem item = auctionItemRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Aranan urun  bulunamadi!"));
+
+        List<Bid> bids = bidRepository.findByAuctionItemOrderByBidAmountDesc(item);
+
+        List<BidHistoryDto> historyBids = new ArrayList<>();
+
+        for(Bid i : bids)
+        {
+            BidHistoryDto dto = new BidHistoryDto();
+            dto.setBidTime(i.getBidTime());
+            dto.setBidAmount(i.getBidAmount());
+            dto.setBidderUserName(i.getBidder().getUsername());
+            historyBids.add(dto);
+        }
+        return historyBids;
     }
 }

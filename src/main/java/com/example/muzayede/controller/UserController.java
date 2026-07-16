@@ -1,10 +1,12 @@
 package com.example.muzayede.controller;
 
 import com.example.muzayede.dto.UserCreateDto;
+import com.example.muzayede.dto.UserProfileDto;
 import com.example.muzayede.entity.User;
 import com.example.muzayede.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +31,14 @@ public class UserController {
                            message = "You can add min 1.0 to your account!") BigDecimal amount)
     {
         userService.addBalance(id, amount);
+    }
+
+    @GetMapping("/profile")
+    public UserProfileDto getMyProfile()
+    {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        return userService.getUserProfile(username);
     }
 
 }

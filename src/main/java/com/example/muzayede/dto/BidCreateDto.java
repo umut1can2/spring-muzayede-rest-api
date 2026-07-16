@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 
 @Data
 public class BidCreateDto {
-    private Long bidderId;
-    private long auctionItemId;
+    private Long auctionItemId;
     private BigDecimal bidAmount;
 }

@@ -10,5 +10,4 @@ public class AuctionItemCreateDto {
     private String description;
     private BigDecimal startPrice;
     private Integer durationInDays;
-    private Long sellerId;
 }

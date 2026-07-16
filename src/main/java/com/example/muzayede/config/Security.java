@@ -31,6 +31,9 @@ public class Security {
                                 .requestMatchers("/api/auctions/delete/**").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/auctions/list").hasAnyRole("USER", "ADMIN")
                                 .requestMatchers("/api/bids/**").hasRole("USER")
+                                .requestMatchers(HttpMethod.POST, "/api/auctions/*/approve").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/bids/auction/*/history").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/users/profile").hasAnyRole("USER","ADMIN")
                                 .anyRequest().authenticated()
 
 

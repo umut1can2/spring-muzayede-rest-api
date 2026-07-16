@@ -20,7 +20,11 @@ public class AuctionItem {
     private BigDecimal currentPrice;
     private LocalDateTime endTime;
     private boolean isActive;
+    private boolean approved;
     @ManyToOne
     private User seller;
+
+    @ManyToOne
+    private User approvedBy;
 
 }
