@@ -2,6 +2,8 @@ package com.example.muzayede.controller;
 
 import com.example.muzayede.config.Security;
 import com.example.muzayede.dto.AuctionItemCreateDto;
+import com.example.muzayede.dto.AuctionItemDetailsDto;
+import com.example.muzayede.dto.AuctionItemUpdateDto;
 import com.example.muzayede.dto.AuctionListItemDto;
 import com.example.muzayede.entity.AuctionItem;
 import com.example.muzayede.service.AuctionItemService;
@@ -45,6 +47,28 @@ public class AuctionItemController {
     {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         auctionItemService.approveAuctionItem(id, username);
+    }
+
+    @PutMapping("/{id}")
+    public void UpdateAuctionItem(@PathVariable Long id, @RequestBody AuctionItemUpdateDto dto)
+    {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        auctionItemService.UpdateAuctionItem(id, username, dto);
+    }
+
+    @PatchMapping("/{id}/deactivate")
+    public void DeActivateAuctionItem(@PathVariable Long id)
+    {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        auctionItemService.deActivateAuctionItem(id, username);
+    }
+
+    @GetMapping("/{id}")
+    public AuctionItemDetailsDto GetAuctionItemDetails(@PathVariable Long id)
+    {
+        return auctionItemService.getAuctionItemDetails(id);
     }
 
 }

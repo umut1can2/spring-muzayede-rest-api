@@ -1,14 +1,16 @@
 package com.example.muzayede.service;
 
-import com.example.muzayede.dto.AuctionItemCreateDto;
-import com.example.muzayede.dto.AuctionListItemDto;
+import com.example.muzayede.dto.*;
 import com.example.muzayede.entity.AuctionItem;
+import com.example.muzayede.entity.Bid;
 import com.example.muzayede.entity.User;
 import com.example.muzayede.exception.ResourceNotFoundException;
 import com.example.muzayede.repository.AuctionItemRepository;
+import com.example.muzayede.repository.BidRepository;
 import com.example.muzayede.repository.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cglib.core.Local;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.util.BeanUtil;
 
@@ -22,12 +24,14 @@ public class AuctionItemService {
 
     private final AuctionItemRepository auctionItemRepository;
     private final UserRepository userRepository;
+    private final BidRepository bidRepository;
 
     public AuctionItemService(AuctionItemRepository auctionItemRepository
-    , UserRepository userRepository)
+    , UserRepository userRepository, BidRepository bidRepository)
     {
         this.auctionItemRepository = auctionItemRepository;
         this.userRepository = userRepository;
+        this.bidRepository = bidRepository;
     }
 
     public AuctionItem createAuctionItem(AuctionItemCreateDto item, String userName)
@@ -90,7 +94,61 @@ public class AuctionItemService {
 
         item.setApproved(true);
         item.setActive(true);
+        item.setApprovedBy(approvedAdmin);
 
         auctionItemRepository.save(item);
+    }
+
+    public void UpdateAuctionItem(Long itemId, String username, AuctionItemUpdateDto dto)
+    {
+        AuctionItem item = auctionItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Secilen ilan bulunamadi!"));
+
+        if(!item.getSeller().getUsername().equals(username))
+            throw new RuntimeException("Bu ilani duzenleme yetkiniz yok!");
+
+        item.setTitle(dto.getTitle());
+        item.setDescription(dto.getDescription());
+
+        auctionItemRepository.save(item);
+    }
+
+    public void deActivateAuctionItem(Long itemId, String username)
+    {
+        AuctionItem item = auctionItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Aranan ilan bulunamadi!"));
+
+        if(!item.getSeller().getUsername().equals(username))
+            throw new RuntimeException("Bu ilani duzenleme yetkiniz yok!");
+
+        item.setActive(false);
+        auctionItemRepository.save(item);
+    }
+
+    public AuctionItemDetailsDto getAuctionItemDetails(Long id)
+    {
+        AuctionItem item = auctionItemRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Aranan ilan bulunamadi!"));
+
+        List<Bid> bids = bidRepository.findByAuctionItemOrderByBidAmountDesc(item);
+
+        List<BidHistoryDto> historyDtos = new ArrayList<>();
+
+        for(Bid i : bids)
+        {
+            BidHistoryDto nBid = new BidHistoryDto();
+            nBid.setBidAmount(i.getBidAmount());
+            nBid.setBidderUserName(i.getBidder().getUsername());
+            nBid.setBidTime(i.getBidTime());
+
+            historyDtos.add(nBid);
+        }
+
+        AuctionItemDetailsDto newDto = new AuctionItemDetailsDto();
+        BeanUtils.copyProperties(item, newDto);
+        newDto.setApprovedByAdminUsername(item.getApprovedBy() != null ? item.getApprovedBy().getUsername() : "Henüz Onaylanmadı");        newDto.setBidHistory(historyDtos);
+        newDto.setSellerUsername(item.getSeller().getUsername());
+
+        return newDto;
     }
 }

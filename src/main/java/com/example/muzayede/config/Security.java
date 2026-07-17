@@ -26,18 +26,24 @@ public class Security {
     {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers("/api/auth/**").permitAll()
+                        auth -> auth
+                                // herkesin girebildikleri
+                                .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/auctions/list").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/auctions/{id}").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/bids/auction/*/history").permitAll() // Bu kural artık güvende, yukarıda!
+                                // sadece admin
                                 .requestMatchers("/api/users/add-balance/**").hasRole("ADMIN")
                                 .requestMatchers("/api/auctions/delete/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/auctions/list").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers("/api/bids/**").hasRole("USER")
                                 .requestMatchers(HttpMethod.POST, "/api/auctions/*/approve").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/bids/auction/*/history").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/users/profile").hasAnyRole("USER","ADMIN")
+                                // user ve admin icin
+                                .requestMatchers(HttpMethod.GET, "/api/users/profile").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/auctions/*").hasRole("USER")
+                                .requestMatchers(HttpMethod.PATCH, "/api/auctions/*/deactivate").hasRole("USER")
+
+                                .requestMatchers("/api/bids/**").hasRole("USER")
+
                                 .anyRequest().authenticated()
-
-
-
                 )
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

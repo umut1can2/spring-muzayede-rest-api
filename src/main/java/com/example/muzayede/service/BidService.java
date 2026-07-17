@@ -2,6 +2,7 @@ package com.example.muzayede.service;
 
 import com.example.muzayede.dto.BidCreateDto;
 import com.example.muzayede.dto.BidHistoryDto;
+import com.example.muzayede.dto.BidResponseDto;
 import com.example.muzayede.entity.AuctionItem;
 import com.example.muzayede.entity.Bid;
 import com.example.muzayede.entity.User;
@@ -40,7 +41,7 @@ public class BidService {
         this.auctionSchedularService = auctionSchedularService;
     }
 
-    public Bid CreateBid(BidCreateDto dto, String userName)
+    public BidResponseDto CreateBid(BidCreateDto dto, String userName)
     {
         User bidder = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanici bulunamadi."));
@@ -123,7 +124,15 @@ public class BidService {
         newBid.setBidder(bidder);
         newBid.setAuctionItem(item);
 
-        return bidRepository.save(newBid);
+        bidRepository.save(newBid);
+
+        BidResponseDto responseDto = new BidResponseDto();
+        responseDto.setAuctionItemId(item.getId());
+        responseDto.setBidderUsername(bidder.getUsername());
+        responseDto.setBidTime(newBid.getBidTime());
+        responseDto.setCurrentPrice(item.getCurrentPrice());
+
+        return responseDto;
 
     }
 

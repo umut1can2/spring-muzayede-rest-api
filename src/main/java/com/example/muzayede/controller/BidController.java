@@ -2,6 +2,7 @@ package com.example.muzayede.controller;
 
 import com.example.muzayede.dto.BidCreateDto;
 import com.example.muzayede.dto.BidHistoryDto;
+import com.example.muzayede.dto.BidResponseDto;
 import com.example.muzayede.entity.Bid;
 import com.example.muzayede.service.BidService;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +21,7 @@ public class BidController {
     }
 
     @PostMapping("/bid")
-    public Bid MakeBid(@RequestBody BidCreateDto dto)
+    public BidResponseDto MakeBid(@RequestBody BidCreateDto dto)
     {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return bidService.CreateBid(dto, username);
