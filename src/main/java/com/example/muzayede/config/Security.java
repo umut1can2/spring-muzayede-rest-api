@@ -42,7 +42,7 @@ public class Security {
                                 .requestMatchers(HttpMethod.PATCH, "/api/auctions/*/deactivate").hasRole("USER")
 
                                 .requestMatchers("/api/bids/**").hasRole("USER")
-
+                                .requestMatchers("/ws-muzayede/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(

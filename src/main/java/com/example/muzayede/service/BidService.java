@@ -12,6 +12,7 @@ import com.example.muzayede.repository.AuctionItemRepository;
 import com.example.muzayede.repository.BidRepository;
 import com.example.muzayede.repository.UserRepository;
 import org.springframework.cglib.core.Local;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,18 +28,23 @@ public class BidService {
     private final AuctionItemRepository auctionItemRepository;
     private final AuctionItemService auctionItemService;
     private final AuctionSchedularService auctionSchedularService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public BidService(
             BidRepository bidRepository,
             UserRepository userRepository,
             AuctionItemRepository auctionItemRepository,
-            AuctionItemService auctionItemService, AuctionSchedularService auctionSchedularService)
+            AuctionItemService auctionItemService,
+            AuctionSchedularService auctionSchedularService,
+            SimpMessagingTemplate messagingTemplate
+    )
     {
         this.bidRepository = bidRepository;
         this.auctionItemRepository = auctionItemRepository;
         this.userRepository = userRepository;
         this.auctionItemService = auctionItemService;
         this.auctionSchedularService = auctionSchedularService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public BidResponseDto CreateBid(BidCreateDto dto, String userName)
@@ -131,6 +137,9 @@ public class BidService {
         responseDto.setBidderUsername(bidder.getUsername());
         responseDto.setBidTime(newBid.getBidTime());
         responseDto.setCurrentPrice(item.getCurrentPrice());
+
+        String destination = "/topic/auction/" + item.getId();
+        messagingTemplate.convertAndSend(destination, responseDto);
 
         return responseDto;
 
